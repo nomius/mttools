@@ -3,7 +3,7 @@
  * BSD-lite license. Bugs, suggests, nor projects: dcortarello@gmail.com.
  *
  * Program: C2troff
- * Version: 0.1
+ * Version: 0.3
  *
  *
  * Copyright (c) 2011, David B. Cortarello
@@ -38,6 +38,11 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+
+#define PACKAGE_NAME "C2troff"
+#define PACKAGE_VERSION "0.3"
+#define DEVELOPER "David B. Cortarello"
+#define DEVEL_EMAIL "dcortarello@gmail.com"
 
 /* Fancy error macro */
 #define pferror(f) { \
@@ -277,13 +282,19 @@ void doSH(FILE *input, FILE *output)
 	}
 }
 
-void help_exit() {
-	fprintf(stderr, "Usage: C2troff <OPTIONS> [<INPUT FILE>] [<OUTPUT FILE>]\n"
+void help_exit(int estatus)
+{
+	fprintf(stderr, "Usage: %s <OPTIONS> [<INPUT FILE>] [<OUTPUT FILE>]\n"
 						 "OPTIONS:\n"
 						 "-l <LANGUAGE> - Supported languages: C and S (shell)\n"
-						 "-h <y/n>      - Include ms macro head in the output\n"
-						 "-m <y/n>      - Use monospace font\n\n");
-	exit(1);
+						 "-h <b/f/n>    - Head type:\n"
+						 "   y - Full ms macro head with monospace font\n"
+						 "   f - Font head (courier type and point size 8.5)\n"
+						 "   n - No head included\n\n"
+						 "%s %s, Copyright (C) 2011 %s <%s>\n\n",
+						 PACKAGE_NAME,
+						 PACKAGE_NAME, PACKAGE_VERSION, DEVELOPER, DEVEL_EMAIL);
+	exit(estatus);
 }
 
 int main(int argc, char *argv[])
@@ -293,17 +304,15 @@ int main(int argc, char *argv[])
 	short int i = 0;
 
 	if (argc < 5)
-		help_exit();
+		help_exit(1);
 
 	for (i = 1; i < 5; i++) {
 		if (!strcmp(argv[i], "-l")) {
 			language = argv[i+1][0];
 			i += 2;
 		}
-		if (!strcmp(argv[i], "-h")) {
-			head = argv[i+1][0];
-			i += 2;
-		}
+		if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
+			help_exit(0);
 	}
 
 	switch (argc) {
@@ -324,12 +333,23 @@ int main(int argc, char *argv[])
 			break;
 	}
 
-	if (head == 'y') {
-		fprintf(output, ".nr PS 12\n");
-		fprintf(output, ".nr PO 1i\n");
-		fprintf(output, ".nr LL 6.5i\n");
-		fprintf(output, ".nr LH 2i\n");
+	switch (head) {
+		case 'y':
+			fprintf(output, ".nr PS 12\n");
+			fprintf(output, ".nr PO 1i\n");
+			fprintf(output, ".nr LL 6.5i\n");
+			fprintf(output, ".nr LH 2i\n");
+			fprintf(output, ".fam C\n");
+			fprintf(output, ".ps 8.5\n");
+			break;
+		case 'f':
+			fprintf(output, ".fam C\n");
+			fprintf(output, ".ps 8.5\n");
+			break;
+		default:
+			break;
 	}
+
 
 	switch (language) {
 		case 'C':
@@ -339,6 +359,9 @@ int main(int argc, char *argv[])
 			doSH(input, output);
 			break;
 	}
+
+	if (head == 'f')
+		fprintf(output, ".fam P\n");
 
 	fclose(input);
 	fclose(output);
