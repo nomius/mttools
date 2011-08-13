@@ -38,6 +38,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <unistd.h>
 
 #define PACKAGE_NAME "C2troff"
 #define PACKAGE_VERSION "0.3"
@@ -311,8 +312,10 @@ int main(int argc, char *argv[])
 			language = argv[i+1][0];
 			i += 2;
 		}
-		if (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
-			help_exit(0);
+		if (!strcmp(argv[i], "-h")) {
+			head = argv[i+1][0];
+			i += 2;
+		}
 	}
 
 	switch (argc) {
