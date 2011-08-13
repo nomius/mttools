@@ -1,0 +1,23 @@
+.HEAD
+.TITLE Test Document
+.AUTOR David B. Cortarello
+.COMPANY Test company
+
+This document is an example, in this one you'll see accented words and extended code for some supported features:
+
+¿Prueba?  ¡Hola! Niño árbol época índigo Canción Esdrújula ` = $ €
+
+.SECTION Sections
+
+.INDENT
+Paragraph with indented text in **BOLD**, ||ITALICS|| y *|*|BOLD AND ITALIS*|*|
+.FINDENT
+
+.ITEM Lists with bullets 1
+.ITEM Lists with bullets 2
+
+
+Formated code (C and shell scripting supported)!
+.CODE C create_regex.c
+
+End of file
