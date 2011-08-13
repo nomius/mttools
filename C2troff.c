@@ -39,6 +39,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define PACKAGE_NAME "C2troff"
 #define PACKAGE_VERSION "0.3"
