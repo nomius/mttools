@@ -23,10 +23,10 @@
 ^.CODE[ ]*.*$ {
 	int i = 0;
 	char *lang = yytext+6, *filename = NULL, C2troffExec[EXEC_LEN];
-	while (*lang == ' ') lang++;
+	while (*lang == ' ' || *lang == '\t') lang++;
 	filename = lang+1;
-	while (*filename == ' ') filename++;
-	printf(".LP\n.LP\n.LP\n" ".fam C\n" ".ps 10\n" ".so %s.roff\n" ".fam P\n" ".LP\n.LP\n.LP\n", filename);
+	while (*filename == ' ' || *lang == '\t') filename++;
+	printf(".LP\n.LP\n.LP\n" ".fam C\n" ".ps 10\n" ".so %s.roff\n" ".fam\n" ".ps\n", filename);
 	sprintf(C2troffExec, "C2troff -h n -l %c %s %s.roff", *lang, filename, filename);
 	system(C2troffExec);
 }
