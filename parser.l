@@ -58,11 +58,11 @@ int bl, it, blit;
 }
 \*\|\*\| {
 	if (!blit) {
-		printf("\\BI");
+		printf("\\f(BI");
 		blit = 1;
 	}
 	else {
-		printf("\\BI");
+		printf("\\fP");
 		blit = 0;
 	}
 }
