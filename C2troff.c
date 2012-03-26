@@ -70,7 +70,8 @@ const char *reserved_C[] = {
 const char *reserved_SH[] = {
 	"if", "fi", "then", "exit", "echo", "-ne", "-eq", "-gt", "-lt", "-ge", "-le" 
 	"read", "do", "done", "for", "case", "esac", "break", "continue", "until", 
-	"time", "select", "in", "function", "else", "elif", "[[", "]]", NULL
+	"time", "select", "in", "function", "else", "elif", "[[", "]]", "exec", 
+	"export", NULL
 };
 
 const char *delimiters_C =  " \t(){}.[]*&:;+-=\\\n";
@@ -302,7 +303,7 @@ void help_exit(int estatus)
 int main(int argc, char *argv[])
 {
 	FILE *input = NULL, *output = NULL;
-	char language = 'C', head = 'y';
+	char language, head;
 	short int i = 0;
 
 	if (argc < 5)
@@ -311,11 +312,11 @@ int main(int argc, char *argv[])
 	for (i = 1; i < 5; i++) {
 		if (!strcmp(argv[i], "-l")) {
 			language = argv[i+1][0];
-			i += 2;
+			i += 1;
 		}
 		if (!strcmp(argv[i], "-h")) {
 			head = argv[i+1][0];
-			i += 2;
+			i += 1;
 		}
 	}
 
@@ -354,7 +355,6 @@ int main(int argc, char *argv[])
 			break;
 	}
 
-
 	switch (language) {
 		case 'C':
 			doC(input, output);
@@ -364,8 +364,10 @@ int main(int argc, char *argv[])
 			break;
 	}
 
-	if (head == 'f')
-		fprintf(output, ".fam P\n");
+	if (head == 'f') {
+		fprintf(output, ".fam\n");
+		fprintf(output, ".ps\n");
+	}
 
 	fclose(input);
 	fclose(output);
