@@ -10,14 +10,20 @@
 
 #define EXEC_LEN (PATH_MAX*2 + 30)
 
+int bl, it, blit;
+
 %}
 %%
-^.HEAD printf(".nr PS 12\n" ".nr PO 0.7i\n" ".nr LL 7i\n" ".nr LH 2i");
+^.HEAD {
+	bl = 0; it = 0; blit = 0;
+	printf(".nr PO 0.7i\n" ".nr LL 6i\n" ".nr LH 2i");
+	/* printf(".nr FN T\n" ".nr PS 10\n" ".nr PO 0.7i\n" ".nr LL 7i\n" ".nr LH 2i"); */
+}
 ^.AUTOR printf(".AU\n");
 ^.TITLE printf(".TL\n");
 ^.COMPANY printf(".AI\n");
 ^.SECTION printf(".SH\n");
-^.ITEM[ ]*.*$ printf(".IP \\[bu]\n%s\n.br", yytext+6);
+^.ITEM[ ]* printf(".IP \\[bu]\n");
 ^.INDENT printf(".RS");
 ^.FINDENT printf(".RE\n");
 ^.CODE[ ]*.*$ {
@@ -30,19 +36,38 @@
 	sprintf(C2troffExec, "C2troff -h n -l %c %s %s.roff", *lang, filename, filename);
 	system(C2troffExec);
 }
-\*\*.*\*\* {
-	yytext[strlen(yytext+2)] = '\0';
-	printf("\\fB%*s\\fP", strlen(yytext+2)-4, yytext+2);
+\*\* {
+	if (!bl) {
+		printf("\\fB");
+		bl = 1;
+	}
+	else {
+		printf("\\fP");
+		bl = 0;
+	}
 }
-\|\|.*\|\| {
-	yytext[strlen(yytext+2)] = '\0';
-	printf("\\fI%*s\\fP", strlen(yytext+2)-4, yytext+2);
+\|\| {
+	if (!it) {
+		printf("\\fI");
+		it = 1;
+	}
+	else {
+		printf("\\fP");
+		it = 0;
+	}
 }
-\*\|\*\|.*\*\|\*\| {
-	yytext[strlen(yytext+4)] = '\0';
-	printf("\\f(BI%*s\\f(BI", strlen(yytext+4)-8, yytext+4);
+\*\|\*\| {
+	if (!blit) {
+		printf("\\BI");
+		blit = 1;
+	}
+	else {
+		printf("\\BI");
+		blit = 0;
+	}
 }
 \.$  printf(".\n.br");
+\:$  printf(":\n.br");
 ^\n  printf(".LP\n");
 \xe1 printf("\\('a");
 \xe9 printf("\\('e");
