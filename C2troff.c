@@ -77,6 +77,7 @@ const char *reserved_SH[] = {
 const char *delimiters_C =  " \t(){}.[]*&:;+-=\\\n";
 const char *delimiters_SH = " \t(){}.[]*&:;+-=*|<>`\\\n";
 const int max_reserved = 8;
+char dfont[3] = { '\0' };
 
 typedef struct _mtok {
 	char orig_token[10];
@@ -107,15 +108,15 @@ gcopy:
 			strcpy(dat->out_token, "\\e");
 		}
 		else if (*dat->out_token == '{')
-			strcpy(dat->out_token, "\\fB{\\fP");
+			sprintf(dat->out_token, "\\f%sB{\\fP", dfont);
 		else if (*dat->out_token == '}')
-			strcpy(dat->out_token, "\\fB}\\fP");
+			printf(dat->out_token, "\\f%sB}\\fP", dfont);
 	}
 
 	for (i = 0; reserved[i]; i++)
 		if (strlen(reserved[i]) == strlen(dat->orig_token) && 
 			 !memcmp(dat->orig_token, reserved[i], strlen(dat->orig_token))) {
-			sprintf(dat->out_token, "\\fB%s\\fP", dat->orig_token);
+			sprintf(dat->out_token, "\\f%sB%s\\fP", dfont, dat->orig_token);
 			break;
 		}
 
@@ -126,14 +127,14 @@ gcopy:
 void doC(FILE *input, FILE *output)
 {
 	char line[MAX_LINE];
-	int comment = 0, i = 0, tabs = 0, j = 0;
+	int comment = 0, i = 0, tabs = 0, j = 0, k = 0;
 	mtok dat;
 
 	while (fgets(line, MAX_LINE, input) != NULL) {
 
 		/* Check for an empty line */
 		if (*line == '\0' || *line == '\n') {
-			fprintf(output, "\n.br\n");
+			fprintf(output, ".sp 1\n");
 			continue;
 		}
 
@@ -141,7 +142,8 @@ void doC(FILE *input, FILE *output)
 
 			/* Comment starting */
 			if (line[i] == '/' && line[i+1] == '*') {
-				fprintf(output, "\\fI/*");
+				if (i == 0) { fprintf(output, ".br\n"); }
+				fprintf(output, "\\f%sI/*", dfont);
 				i += 1;
 				comment = 1;
 				continue;
@@ -162,6 +164,10 @@ void doC(FILE *input, FILE *output)
 							;
 						i += tabs - 1;
 						fprintf(output, "\\h'|%dn'", TABS_SIZE * tabs);
+#if 0
+						for (k = 0; k < TABS_SIZE * tabs; k++)
+							fprintf(output, " ");
+#endif
 					}
 					else if (line[i] == '\n')
 						fprintf(output, "\n.br\n");
@@ -178,35 +184,50 @@ void doC(FILE *input, FILE *output)
 					;
 				i += tabs - 1;
 				fprintf(output, "\\h'|%dn'", TABS_SIZE * tabs);
+#if 0
+				for (k = 0; k < TABS_SIZE * tabs; k++)
+					fprintf(output, " ");
+#endif
 			}
 
 			/* Check for a pointer * */
-			else if (line[i] == '*')
-				fprintf(output, "\\fI*\\fP");
+			else if (line[i] == '*') {
+				if (i == 0) { fprintf(output, ".br\n"); }
+				fprintf(output, "\\f%sI*\\fP", dfont);
+			}
 
 			/* Check for an inverted slash (\) */
-			else if (line[i] == '\\')
+			else if (line[i] == '\\') {
+				if (i == 0) { fprintf(output, ".br\n"); }
 				fprintf(output, "\\e");
+			}
 
-			/* Check for an inverted slash (\) */
-			else if (line[i] == '.')
+			/* Check for a dot (.) */
+			else if (line[i] == '.') {
+				if (i == 0) { fprintf(output, ".br\n"); }
 				fprintf(output, "\\&.");
+			}
 
 			/* Check for a opening braket ({) */
-			else if (line[i] == '{')
-				fprintf(output, "\\fB{\\fP");
+			else if (line[i] == '{') {
+				if (i == 0) { fprintf(output, ".br\n"); }
+				fprintf(output, "\\f%sB{\\fP", dfont);
+			}
 
 			/* Check for a clossing braket (}) */
-			else if (line[i] == '}')
-				fprintf(output, "\\fB}\\fP");
+			else if (line[i] == '}') {
+				if (i == 0) { fprintf(output, ".br\n"); }
+				fprintf(output, "\\f%sB}\\fP", dfont);
+			}
 
 			/* Check for a carriage return (\n) */
 			else if (line[i] == '\n')
-				fprintf(output, "\n.br\n");
+				fprintf(output, "\n");
 
 			/* Otherwise, print the character taking care for reserved words */
 			else {
 				j = rtoken(line+i, reserved_C, delimiters_C, &dat);
+				if (i == 0 && *dat.out_token == '\\') { fprintf(output, ".br\n"); }
 				fprintf(output, "%s", dat.out_token);
 				i += j-1;
 			}
@@ -244,12 +265,14 @@ void doSH(FILE *input, FILE *output)
 				for (tabs = 1; line[i] && line[i+tabs] == '\t'; tabs++)
 					;
 				i += tabs - 1;
-				fprintf(output, "\\h'|%dn'", TABS_SIZE * tabs);
+				/*fprintf(output, "\\h'|%dn'", TABS_SIZE * tabs);*/
+				for (j = 0; j < TABS_SIZE * tabs; j++)
+					fprintf(output, " ");
 			}
 
 			/* Check for a pointer * */
 			else if (line[i] == '*')
-				fprintf(output, "\\fI*\\fP");
+				fprintf(output, "\\f%sI*\\fP", dfont);
 
 			/* Check for an inverted slash (\) */
 			else if (line[i] == '\\')
@@ -261,11 +284,11 @@ void doSH(FILE *input, FILE *output)
 
 			/* Check for a opening braket ({) */
 			else if (line[i] == '{')
-				fprintf(output, "\\fB{\\fP");
+				fprintf(output, "\\f%sB{\\fP", dfont);
 
 			/* Check for a clossing braket (}) */
 			else if (line[i] == '}')
-				fprintf(output, "\\fB}\\fP");
+				fprintf(output, "\\f%sB}\\fP", dfont);
 
 			/* Check for a clossing braket (}) */
 			else if (line[i] == '`')
@@ -346,10 +369,12 @@ int main(int argc, char *argv[])
 			fprintf(output, ".nr LH 2i\n");
 			fprintf(output, ".fam C\n");
 			fprintf(output, ".ps 8.5\n");
+			strcpy(dfont, "(C");
 			break;
 		case 'f':
 			fprintf(output, ".fam C\n");
 			fprintf(output, ".ps 8.5\n");
+			strcpy(dfont, "(C");
 			break;
 		default:
 			break;
