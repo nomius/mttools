@@ -1,4 +1,4 @@
 mttools
 =======
 
-Smalls tools for technical documents with Troff/Groff
+Smalls set of tools for technical documents with Troff/Groff
